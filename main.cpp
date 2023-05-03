@@ -32,10 +32,11 @@ RBTNode* getUncle(RBTNode* node);
 
 bool getColor(RBTNode* node);
 void RBTInsert(RBTNode* &root, RBTNode* node);
-void RBTInsertFix(RBTNode* node, RBTNode* root);
+void RBTInsertFix(RBTNode* node, RBTNode* &root);
 void RBTPrint(RBTNode* root, int indent);
-void rotateLeft(RBTNode* node, RBTNode* root);
-void rotateRight(RBTNode* node, RBTNode* root);
+void rotateLeft(RBTNode* node, RBTNode* &root);
+void rotateRight(RBTNode* node, RBTNode* &root);
+void RBTSearch(RBTNode* root, int value);
 
 int main() {
     char input[10];
@@ -43,8 +44,8 @@ int main() {
     RBTNode* root = NULL;
 
     while (running == true) { // loops until user quits the program
-        cout << "------------------------------------------------" << endl;
-        cout << "What Would You Like To Do? (ADD/PRINT/READ/HELP)" << endl;
+        cout << "-------------------------------------------------------" << endl;
+        cout << "What Would You Like To Do? (ADD/PRINT/READ/SEARCH/HELP)" << endl;
 
         cin.get(input, 10);
         cin.ignore(1, '\n');
@@ -79,6 +80,13 @@ int main() {
                 RBTInsertFix(node, root);
             }
             numbers.close();
+        }
+        else if (input[0] == 'S' || input[0] == 's') {
+            int searchValue;
+            cout << "What Value Would You Like To Search For?" << endl;
+            cin >> searchValue;
+            cin.ignore(1, '\n');
+            RBTSearch(root, searchValue);
         }
         else if (input[0] == 'H' || input[0] == 'h') { // displays help message
             cout << "ADD: Allows you to input numbers to be added to the tree" << endl;
@@ -160,7 +168,7 @@ void RBTInsert(RBTNode* &root, RBTNode* node) { // inserts a node into the tree
     }
 }
 
-void RBTInsertFix(RBTNode* node, RBTNode* root) { // fixes the tree after insertion
+void RBTInsertFix(RBTNode* node, RBTNode* &root) { // fixes the tree after insertion
     if (getParent(node) == NULL) { // if node is root
         node->isRed = false;
     }
@@ -222,42 +230,71 @@ void RBTPrint(RBTNode* root, int indent) { // prints the tree
     RBTPrint(root->left, indent); // prints the left side of the tree
 }
 
-void rotateLeft(RBTNode* node, RBTNode* root) { // rotates the tree left
+void rotateLeft(RBTNode* node, RBTNode* &root) { // rotates the tree left
+    cout << "rotate left" << endl;
     RBTNode* nodeRight = node->right;
     node->right = nodeRight->left;
     if (nodeRight->left != NULL) { // if left child of right child of node is not null
+        cout << "left child of right child of node is not null" << endl;
         nodeRight->left->parent = node;
     }
     nodeRight->left = node;
     nodeRight->parent = node->parent;
     if (node->parent == NULL) { // if node is root
         root = nodeRight;
+        cout << "node is root" << endl;
     }
     else if (node == node->parent->left) { // if node is left child
         node->parent->left = nodeRight;
+        cout << "node is left child of parent" << endl;
     }
     else { // if node is right child
         node->parent->right = nodeRight;
+        cout << "node is right child of parent" << endl;
     } 
     node->parent = nodeRight;
 }
 
-void rotateRight(RBTNode* node, RBTNode* root) { // rotates the tree right
+void rotateRight(RBTNode* node, RBTNode* &root) { // rotates the tree right
+    cout << "rotate right" << endl;
     RBTNode* nodeLeft = node->left;
     node->left = nodeLeft->right;
     if (nodeLeft->right != NULL) { // if right child of left child of node is not null
+        cout << "right child of left child of node is not null" << endl;
         nodeLeft->right->parent = node;
     }
     nodeLeft->right = node;
     nodeLeft->parent = node->parent;
     if (node->parent == NULL) { // if node is root
+        cout << "node is root" << endl;
         root = nodeLeft;
     }
     else if (node == node->parent->left) { // if node is left child
+        cout << "node is left child of parent" << endl;
         node->parent->left = nodeLeft;
     }
     else { // if node is right child
+        cout << "node is right child of parent" << endl;
         node->parent->right = nodeLeft;
     }
     node->parent = nodeLeft;
+}
+
+void RBTSearch(RBTNode* root, int value) { // searches for a value in the tree
+    if (root == NULL) { // if the tree is empty
+        cout << "Value Not Found" << endl;
+        return;
+    }
+    else if (value < root->data) { // if value is less than the current node, go left
+        RBTSearch(root->left, value);
+    }
+    else if (value > root->data) { // if value is greater than the current node, go right
+        RBTSearch(root->right, value);
+    }
+    else if (value == root->data) { // if value is equal to the current node, delete it
+        cout << "Value Found: " << value << endl;
+    }
+    else { // if the value is not in the tree
+        cout << "Value Not Found" << endl;
+    }
 }
