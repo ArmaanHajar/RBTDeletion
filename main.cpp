@@ -298,3 +298,46 @@ void RBTSearch(RBTNode* root, int value) { // searches for a value in the tree
         cout << "Value Not Found" << endl;
     }
 }
+
+void RBTDelete(RBTNode* &root, int value) { // deletes a value from the tree
+    cout << "Enter a value to delete: ";
+    int value;
+    cin >> value;
+    RBTNode* node = RBTSearch(root, value);
+    if (node == NULL) { // if the value is not in the tree
+        cout << "Value Not Found" << endl;
+        return;
+    }
+    else { // if the value is in the tree
+        RBTDeleteFix(root, node);
+    }
+}
+
+void RBTDeleteFix(RBTNode* &root, RBTNode* node) { // fixes the tree after deletion
+    if (node == NULL) { // if the value is not in the tree
+        cout << "Value Not Found" << endl;
+        return;
+    }
+    else if (node == root) { // if the value is the root
+        root = NULL;
+        return;
+    }
+    else if (node->isRed == true) { // if the value is red
+        if (node == node->parent->left) { // if the value is a left child
+            node->parent->left = NULL;
+        }
+        else { // if the value is a right child
+            node->parent->right = NULL;
+        }
+        return;
+    }
+    else if (node->isRed == false) { // if the value is black
+        if (node == node->parent->left) { // if the value is a left child
+            node->parent->left = NULL;
+        }
+        else { // if the value is a right child
+            node->parent->right = NULL;
+        }
+        RBTDeleteFix(root, node->parent);
+    }
+}
