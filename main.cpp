@@ -29,9 +29,9 @@ RBTNode* getParent(RBTNode* node);
 RBTNode* getGrandparent(RBTNode* node);
 RBTNode* getSibling(RBTNode* node);
 RBTNode* getUncle(RBTNode* node);
+RBTNode* findNode(RBTNode* root, int value);
 
 bool getColor(RBTNode* node);
-bool nodeIsInTree(RBTNode* root, int value);
 
 void RBTInsert(RBTNode* &root, RBTNode* node);
 void RBTInsertFix(RBTNode* node, RBTNode* &root);
@@ -39,7 +39,7 @@ void RBTPrint(RBTNode* root, int indent);
 void rotateLeft(RBTNode* node, RBTNode* &root);
 void rotateRight(RBTNode* node, RBTNode* &root);
 void RBTSearch(RBTNode* root, int value);
-void RBTDelete(RBTNode* &root, RBTNode* node);
+void RBTDelete(RBTNode* &root, int value);
 void RBTDeleteFix(RBTNode* node, RBTNode* &root);
 
 int main() {
@@ -78,13 +78,10 @@ int main() {
             cout << "Input a Number Between 1-999" << endl;
             cin >> deleteNum;
             cin.ignore(1, '\n');
-            bool isInTree = nodeIsInTree(root, deleteNum);
-            if (isInTree == true) { // checks if input is in tree
-                cout << "Deleting Number" << endl;
-                RBTNode* node = new RBTNode(deleteNum);
-                RBTDelete(root, node);
+            if (deleteNum >= 1 && deleteNum <= 999) { // checks if input is valid
+                RBTDelete(root, deleteNum);
             }
-            else { // if input is not in tree
+            else { // if input is not valids
                 cout << "Number Is Not In The Tree" << endl;
             }
         }
@@ -153,31 +150,23 @@ RBTNode* getUncle(RBTNode* node) { // returns the uncle of the node
     return getSibling(parent);
 }
 
+RBTNode* findNode(RBTNode* root, int value) { // finds a node in the tree
+    if (root == NULL || root->data == value) { // if tree is empty or node is found
+        return root;
+    }
+    if (root->data < value) { // if node is greater than root
+        return findNode(root->right, value);
+    }
+    return findNode(root->left, value);
+}
+
+
 bool getColor(RBTNode* node) { // returns the color of the node
     if (node == NULL) {
         return false;
     }
     return node->isRed;
 }
-
-bool nodeIsInTree(RBTNode* root, int value) { // checks if node is in tree or not
-    if (root == NULL) { // if the tree is empty
-        return false;
-    }
-    else if (value < root->data) { // if value is less than the current node, go left
-        return nodeIsInTree(root->left, value);
-    }
-    else if (value > root->data) { // if value is greater than the current node, go right
-        return nodeIsInTree(root->right, value);
-    }
-    else if (value == root->data) { // if value is equal to the current node, delete it
-        return true;
-    }
-    else { // if the value is not in the tree
-        return false;
-    }    
-}
-
 
 void RBTInsert(RBTNode* &root, RBTNode* node) { // inserts a node into the tree
     if (root == NULL) { // if tree is empty
@@ -327,100 +316,64 @@ void RBTSearch(RBTNode* root, int value) { // searches for a value in the tree
     }
 }
 
-void RBTDelete(RBTNode* &root, RBTNode* node) {
-    if (node->left == NULL && node->right == NULL) { // if node has no children
-        cout << "delete no children" << endl;
-        if (node == root) { // if node is root
-            cout << "delete root" << endl;
-            root = NULL;
-        }
-        else if (node->isRed == false) { // if node is black
-            cout << "delete black" << endl;
-            RBTDeleteFix(node, root);
-        }
-        else { // if node is red
-            if (node == node->parent->left) { // if node is left child
-                cout << "delete red left" << endl;
-                node->parent->left = NULL;
-            }
-            else { // if node is right child
-                cout << "delete red right" << endl;
-                node->parent->right = NULL;
-            }
-        }
+void RBTDelete(RBTNode* &root, int value) { // deletes a value from the tree
+    RBTNode* node = findNode(root, value); // node user inputted
+    RBTNode* deleteNode = NULL; // node to be deleted
+    RBTNode* childOfNode = NULL; // child of node to be deleted
+    if (node == NULL) { // if the tree is empty
+        return;
     }
-    else if (node->left == NULL) { // if node does not have a left child
-        cout << "delete no left child" << endl;
-        if (node == root) { // if node is root
-            cout << "delete root" << endl;
-            root = node->right;
-            root->parent = NULL;
-            root->isRed = false;
-        }
-        else if (node->isRed == false) { // if node is black
-            cout << "delete black" << endl;
-            RBTDeleteFix(node, root);
-        }
-        else { // if node is red
-            node->right->parent = node->parent;
-            if (node == node->parent->left) { // if node is left child
-                cout << "delete red left" << endl;
-                node->parent->left = node->right;
-            }
-            else { // if node is right child
-                cout << "delete red right" << endl;
-                node->parent->right = node->right;
-            }
-        }
-    }
-    else if (node->right == NULL) { // if node has one child
-        cout << "delete no right child" << endl;
-        if (node == root) { // if node is root
-            root = node->left;
-            root->parent = NULL;
-            root->isRed = false;
-        }
-        else if (node->isRed == false) { // if node is black
-            cout << "delete black" << endl;
-            RBTDeleteFix(node, root);
-        }
-        else { // if node is red
-            node->left->parent = node->parent;
-            if (node == node->parent->left) { // if node is left child
-                cout << "delete red left" << endl;
-                node->parent->left = node->left;
-            }
-            else { // if node is right child
-                cout << "delete red right" << endl;
-                node->parent->right = node->left;
-            }
-        }
-    }
+    if (node->left == NULL || node->right == NULL) { // if node has one child
+        deleteNode = node;
+    } 
     else { // if node has two children
-        cout << "delete two children" << endl;
-        RBTNode* temp = node->right;
-        while (temp->left != NULL) { // finds the smallest value in the right subtree
-            temp = temp->left;
+        deleteNode = node->right;
+        while (deleteNode->left != NULL) {
+            deleteNode = deleteNode->left;
         }
+    }
+    if (deleteNode->left != NULL) { // if left child of node to be deleted is not null
+        childOfNode = deleteNode->left;
+    } 
+    else { // if right child of node to be deleted is not null
+        childOfNode = deleteNode->right;
+    }
+    if (childOfNode != NULL) { // if child of node to be deleted is not null
+        childOfNode->parent = deleteNode->parent;
+    }
+    if (deleteNode->parent == NULL) { // if node to be deleted is root
+        root = childOfNode;
+    }
+    else if (deleteNode == deleteNode->parent->left) { // if node to be deleted is left child
+        deleteNode->parent->left = childOfNode;
+    }
+    else { // if node to be deleted is right child
+        deleteNode->parent->right = childOfNode;
+    }
+    if (deleteNode != node) { // if node to be deleted is not the node user inputted
+        node->data = deleteNode->data;
+    }
+    if (deleteNode->isRed == false && childOfNode != NULL) { // if node to be deleted is black and child of node is not null
+        RBTDeleteFix(childOfNode, root);
     }
 }
 
-void RBTDeleteFix(RBTNode* node, RBTNode* &root) {
-    while (node != root && getColor(node) == false) {
-        if (node == getParent(node)->left) {
+void RBTDeleteFix(RBTNode* node, RBTNode* &root) { // fixes the tree after a node is deleted
+    while (node != root && getColor(node) == false) { // while node is not root and node is black
+        if (node == getParent(node)->left) { // if node is left child
             RBTNode* sibling = getSibling(node);
-            if (getColor(sibling) == true) {
+            if (getColor(sibling) == true) { // if sibling is red
                 sibling->isRed = false;
                 getParent(node)->isRed = true;
                 rotateLeft(getParent(node), root);
                 sibling = getParent(node)->right;
             }
-            if (getColor(sibling->left) == false && getColor(sibling->right) == false) {
+            if (getColor(sibling->left) == false && getColor(sibling->right) == false) { // if sibling's children are black
                 sibling->isRed = true;
                 node = getParent(node);
             } 
-            else {
-                if (getColor(sibling->right) == false) {
+            else { // if sibling's children are not black
+                if (getColor(sibling->right) == false) { // if sibling's right child is black
                     sibling->left->isRed = false;
                     sibling->isRed = true;
                     rotateRight(sibling, root);
@@ -433,7 +386,7 @@ void RBTDeleteFix(RBTNode* node, RBTNode* &root) {
                 node = root;
             }
         } 
-        else {
+        else { // if node is right child
             RBTNode* sibling = getSibling(node);
             if (getColor(sibling) == true) {
                 sibling->isRed = false;
@@ -441,12 +394,12 @@ void RBTDeleteFix(RBTNode* node, RBTNode* &root) {
                 rotateRight(getParent(node), root);
                 sibling = getParent(node)->left;
             }
-            if (getColor(sibling->right) == false && getColor(sibling->left) == false) {
+            if (getColor(sibling->right) == false && getColor(sibling->left) == false) { // if sibling's children are black
                 sibling->isRed = true;
                 node = getParent(node);
-            } 
-            else {
-                if (getColor(sibling->left) == false) {
+            }
+            else { // if sibling's children are not black
+                if (getColor(sibling->left) == false) { // if sibling's left child is black
                     sibling->right->isRed = false;
                     sibling->isRed = true;
                     rotateLeft(sibling, root);
@@ -460,5 +413,7 @@ void RBTDeleteFix(RBTNode* node, RBTNode* &root) {
             }
         }
     }
-    node->isRed = false;
+    if (node != NULL) { // if node is not null
+        node->isRed = false;
+    }
 }
